@@ -73,14 +73,16 @@ def import_input_data():
     # TODO: Import the data to the dictionary at Class Data
 
 def optimize():
+    Data.INPUT_DATA["Remove Me"] = False
     # Only if data has been loaded properly
     if Data.INPUT_DATA.keys():
-        mc.mcprint(text="There is data",
-                   color=mc.Color.GREEN)
-        print(mc.Color.LIGHTGREEN)
+        # mc.mcprint(text="There is data",
+        #            color=mc.Color.GREEN)
+        print(mc.Color.GREEN)
         cwd = os.getcwd()
-        os.chdir(ConfigFiles.DIRECTORIES["-output"])  # Change dir to write the problem in output folder
+        os.chdir(ConfigFiles.DIRECTORIES["output"])  # Change dir to write the problem in output folder
         model.model.writeProblem()
+        print(mc.Color.PURPLE)
         model.model.optimize()
         os.chdir(cwd)  # Head back to original working directory
         print(mc.Color.RESET)
