@@ -1,7 +1,9 @@
 import os
 
 import model
-import mcutils as mc
+# import mcutils as mc
+from mcutils import menu_manager as mc
+
 
 class ConfigFiles:
     DIRECTORIES = {"input_data": "{}".format(os.path.join(os.getcwd(), "input_data")),

@@ -1,7 +1,8 @@
 import os
+import sys
 
 import utilities
-import mcutils as mc
+from mcutils import menu_manager as mc
 
 mc.Color_Settings.print_color = True
 mc.Color_Settings.is_dev = True
