@@ -1,6 +1,5 @@
 import pyscipopt
 
-
 model = pyscipopt.Model("Model_Team_8")
 x = model.addVar("x")
 y = model.addVar("y", vtype="INTEGER")
