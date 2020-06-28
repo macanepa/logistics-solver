@@ -1,0 +1,4 @@
+SupplierID;ItemProduced;ItemAvailability;UnitItemCost
+Supplier001;Item001;11;900
+Supplier002;Item001;4;870
+Supplier003;Item002;7;2400
