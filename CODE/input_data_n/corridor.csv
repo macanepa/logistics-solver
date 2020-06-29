@@ -1,2 +1,3 @@
 CorridorOrigin;CorridorDestination;TransportationCostPerContainerAutomatic;TransportationCostPerContainerManual;TransportationCostPerContainerSubcontractor;HasHighway;TaxPerContainer
 Reception001;Plant001;50;86;1000;0;0
+Reception002;Plant001;0;0;0;0;0

@@ -21,7 +21,7 @@ def initialize_directories():
         if directory_name not in current_directories:
             directory_path = os.path.join(os.getcwd(), directory_name)
             mc.mcprint(text="The directory '{}' doesn't exists.".format(directory_path),
-                       color=mc.Color.YELLOW)
+                       color=mc.Color.ORANGE)
             os.mkdir(directory_name)
             mc.mcprint(text="Created '{}' successfully".format(directory_path),
                        color=mc.Color.GREEN)
@@ -46,9 +46,7 @@ def initialize():
     mc.mcprint(text="Initializing Solver...")
     check_argument()
     initialize_directories()
-    import_data()
-    create_parameters()
-    construct_model()
+    import_input_data()
 
 def print_input_data():
     print(mc.Color.PINK)
@@ -56,18 +54,15 @@ def print_input_data():
     print(mc.Color.RESET)
 
 def import_data():
-    mc.mcprint(text="Do some magic importing the data from the csv files :D",
-               color=mc.Color.PINK)
-    mc.mcprint(text="The current folder is ({})".format(ConfigFiles.DIRECTORIES["input_data"]),
-               color=mc.Color.PINK)
-    # Use correct directory
+    mc.mcprint(text="Importing from data input directory", color=mc.Color.ORANGE)
+    mc.mcprint(text="The current directory is ({})".format(ConfigFiles.DIRECTORIES["input_data"]),
+               color=mc.Color.ORANGE)
 
     path_dirs = {}
     input_data_path = ConfigFiles.DIRECTORIES["input_data"]
     for directory in os.listdir(input_data_path):
         path_dirs[directory] = os.path.join(input_data_path, directory)
 
-    data = {}
     exclude = ['corridor.csv', 'surcharge.csv', 'route_supplier.csv']
     for file_name in path_dirs:
         path = path_dirs[file_name]
@@ -96,10 +91,16 @@ def import_data():
                         object_data["_".join([file_name.split(".")[0]] + split[:2])][headers[index]] = attribute
 
         Data.INPUT_DATA[file_name.split(".")[0]] = object_data
+    if len(Data.INPUT_DATA) == 0:
+        raise Exception("No compatible data has been found. "
+                        "Please please insert valid data or change the input data directory")
 
 def create_parameters():
-
+    MM = 99999999
     data = Data.INPUT_DATA
+
+    if len(data.keys()) == 0:
+        raise Exception("There is no data")
 
     # Region of plant a
     RAa = {}
@@ -143,8 +144,6 @@ def create_parameters():
         for reception in RRr:
             coordinate = [RSs[supplier],RRr[reception]]
             id_ = "_".join(['surcharge'] + coordinate)
-            pprint(data['surcharge'])
-            print(id_)
             Tsd[supplier, reception] = 0
             if id in data['surcharge'].keys():
                 Tsd[supplier, reception] = data['surcharge'][id_]
@@ -182,6 +181,7 @@ def create_parameters():
     for plant in data['plants']:
         for corridor_type in corridor_types:
             id_ = "PlantHandlingCostPerContainer" + corridor_type
+            CDaj[(plant, corridor_type)] = 0
             if id_ in data['plants'][plant].keys():
                 CDaj[(plant, corridor_type)] = float(data['plants'][plant][id_].replace(",","."))
 
@@ -190,6 +190,7 @@ def create_parameters():
     # TODO: change model to include automatic handling
     for reception in data['receptions']:
         for corridor_type in corridor_types:
+            CDdj[(reception, corridor_type)] = 0
             id_ = "ReceptionHandlingCostPerContainer" + corridor_type
             if id_ in data['receptions'][reception].keys():
                 CDdj[(reception, corridor_type)] = float(data['receptions'][reception][id_].replace(",","."))
@@ -198,9 +199,11 @@ def create_parameters():
     # Container transportation cost from supplier to reception
     LDsd = {}
     for route in data['route_supplier']:
-        supplier = data['route_supplier'][route]['SupplierID']
-        reception = data['route_supplier'][route]['ReceptionID']
-        LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
+        for supplier in data['suppliers']:
+            LDsd[(supplier, reception)] = MM
+            if supplier == data['route_supplier'][route]['SupplierID']:
+                reception = data['route_supplier'][route]['ReceptionID']
+                LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
 
     # Weight of item p
     Fp = {}
@@ -273,7 +276,7 @@ def select_input_data_folder():
         if not os.path.isfile(directory):
             menu_list.append(directory)
 
-    mc_import_data = mc.Menu(title="Import Input Data", subtitle="Select the file to import",
+    mc_import_data = mc.Menu(title="Import Input Data", subtitle="Select the directory to import",
                              options=menu_list, back=False)
     selected_index = int(mc_import_data.show())
     selected_folder = menu_list[selected_index - 1]
@@ -281,13 +284,23 @@ def select_input_data_folder():
     mc.mcprint(ConfigFiles.DIRECTORIES["input_data"], color=mc.Color.GREEN)
     return selected_folder
 
-def import_input_data():
+def import_input_data(select_new_folder=False):
     try:
-        select_input_data_folder()
+        select_input_data_folder() if select_new_folder else None
+        mc.mcprint(text="Importing raw data", color=mc.Color.ORANGE)
         import_data()
-        print_input_data()
-    except:
-        mc.register_error(error_string="The directory doesn't contain a valid structure")
+        mc.mcprint(text="The data has been imported successfully", color=mc.Color.GREEN)
+        mc.mcprint(text="Generating parameters from input data", color=mc.Color.ORANGE)
+        create_parameters()
+        mc.mcprint(text="Parameters has been generated successfully", color=mc.Color.GREEN)
+        mc.mcprint(text="Constructing Model", color=mc.Color.ORANGE)
+        construct_model()
+        mc.mcprint(text="Model has been constructed successfully", color=mc.Color.GREEN)
+        mc.mcprint(text="\nThe instance is ready to be optimized", color=mc.Color.GREEN)
+        # print_input_data()
+    except Exception as e:
+        mc.register_error(error_string="The input directory doesn't contain a valid structure")
+        mc.register_error(error_string=e)
         return
     # TODO: Import the data to the dictionary at Class Data
 
@@ -320,8 +333,10 @@ def display_information():
                color=mc.Color.PURPLE)
 
 def construct_model():
-    model.build_model(data=Data.INPUT_DATA, parameters=Data.PARAMETERS)
-    mc.mcprint(text="Model Constructed Successfully", color=mc.Color.ORANGE)
+    try:
+        model.build_model(data=Data.INPUT_DATA, parameters=Data.PARAMETERS)
+    except Exception as e:
+        mc.register_error(error_string=e)
 
 def display_parameters():
     pprint(Data.PARAMETERS)

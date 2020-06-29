@@ -15,14 +15,14 @@ about = mc.Credits(authors=["Matías Cánepa"],
                    github_account="macanepa")
 
 mf_exit_application = mc.Menu_Function(title="Exit", function=mc.exit_application)
-mf_import_input_data = mc.Menu_Function(title="Change Input Data Folder", function=utilities.import_input_data)
+mf_import_input_data = mc.Menu_Function("Change Input Data Folder", utilities.import_input_data, *[True])
 mf_optimize = mc.Menu_Function(title="Optimize", function=utilities.optimize)
 mf_about = mc.Menu_Function(title="About", function=about.print_credits)
 mf_display_information = mc.Menu_Function(title="Display Information", function=utilities.display_information)
-mf_print_input_data = mc.Menu_Function(title="Print Input Data", function=utilities.print_input_data)
+mf_display_input_data = mc.Menu_Function(title="Display Input Data", function=utilities.print_input_data)
 mf_display_parameters = mc.Menu_Function(title="Display Parameters", function=utilities.display_parameters)
 
-mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_print_input_data, mf_display_parameters, mf_about, mf_exit_application], back=False)
+mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_display_input_data, mf_display_parameters, mf_about, mf_exit_application], back=False)
 
 while True:
     mc_main_menu.show()

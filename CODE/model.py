@@ -47,30 +47,30 @@ def build_model(data, parameters):
                     Psrpi[s,r,p,i] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
 
 
-    pprint(model.getVars())
+    # pprint(model.getVars())
 
 
     objective_function = model.addVar(name="objective function", lb=None)
     # model.addCons(objective_function == pyscipopt.quicksum(Xsrpi[supplier, reception, plant, item]*3 for supplier in data['suppliers'] for reception in data['receptions'] for plant in data['plants'] for item in data['items'] ))
-    model.addCons(objective_function == pyscipopt.quicksum(Psrpi[s,r,p,i] + Xsrpi[s,r,p,i] + Yrpic[r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for p in data['plants'] for i in data['items'] for c in parameters['COR'] ))
+    # model.addCons(objective_function == pyscipopt.quicksum(Psrpi[s,r,p,i] + Xsrpi[s,r,p,i] + Yrpic[r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for p in data['plants'] for i in data['items'] for c in parameters['COR'] ))
     pa = parameters
 
     # TODO: This is the real objective function. Is not complete.
-    # model.addCons(objective_function == sum(
-    #               pyscipopt.quicksum((pa['Tsd'][s,r]*pa['PLra'][r,p] + pa['CDdj'][r,c]+ pa['LDsd'][s,r])*Xsrpi[s,r,p,i] + pa['CSsp'][s,i]*Psrpi[s,r,p,i]\
-    #                                  #for s,r,p,i,c
-    #                                  for s in data['suppliers']\
-    #                                  for r in data['receptions']\
-    #                                  for p in data['plants']\
-    #                                  for i in data['items']\
-    #                                  for c in parameters['COR']),
-    #               pyscipopt.quicksum((pa['Kdaj'][r,p,c] + pa['Daj'][p,c]) * Yrpic[r,p,i,c]\
-    #                                  # for r,p,i,c
-    #                                  for r in data['receptions']\
-    #                                  for p in data['plants']\
-    #                                  for i in data['items']\
-    #                                  for c in parameters['COR']\
-    #                                  )))
+    model.addCons(objective_function == (
+                  pyscipopt.quicksum((pa['Tsd'][s,r]*pa['PLra'][r,p] + pa['CDdj'][r,c]+ pa['LDsd'][s,r])*Xsrpi[s,r,p,i] + pa['CSsp'][s,i]*Psrpi[s,r,p,i]\
+                                     #for s,r,p,i,c
+                                     for s in data['suppliers']\
+                                     for r in data['receptions']\
+                                     for p in data['plants']\
+                                     for i in data['items']\
+                                     for c in parameters['COR'])\
+                  + pyscipopt.quicksum((pa['Kdaj'][r,p,c] + pa['CDaj'][p,c]) * Yrpic[r,p,i,c]\
+                  #                    for r,p,i,c
+                                     for r in data['receptions']\
+                                     for p in data['plants']\
+                                     for i in data['items']\
+                                     for c in parameters['COR']\
+                                       )))
 
     model.setObjective(objective_function, "minimize")
 
@@ -82,7 +82,7 @@ def build_model(data, parameters):
     for p in data['plants']:
         for i in data['items']:
             model.addCons(pyscipopt.quicksum(Psrpi[s,r,p,i] for s in data['suppliers'] for r in data['receptions'])
-                          >= (parameters['Map'][p,i] if (p,i) in parameters['Map'].keys() else 0))
+                          == (parameters['Map'][p,i] if (p,i) in parameters['Map'].keys() else 0))
 
     # Repartir los productos en containers
     for s in data['suppliers']:
