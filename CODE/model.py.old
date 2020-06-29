@@ -11,20 +11,19 @@ def build_model(data, parameters):
     MM = 9999999
 
     # Variable Declarations
-    Xsrpic = {}
-    # Yrpic = {}
-    Psrpic = {}
+    Xsrpi = {}
+    Yrpic = {}
+    Psrpi = {}
 
     # Construct Variable X
     for supplier in data['suppliers']:
         for reception in data['receptions']:
             for plant in data['plants']:
                 for item in data['items']:
-                    for corridor in parameters['COR']:
-                        variable_name = "X[{}][{}][{}][{}][{}]".format(
-                            supplier, reception, item, plant, corridor
-                        )
-                        Xsrpic[supplier, reception, plant, item, corridor] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
+                    variable_name = "X[{}][{}][{}][{}]".format(
+                        supplier, reception, item, plant
+                    )
+                    Xsrpi[supplier, reception, plant, item] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
 
     # TODO: Only construct variable that can exists (i.e, remove corridor where )
     # Construct Variable Y
@@ -35,18 +34,17 @@ def build_model(data, parameters):
                     variable_name = "Y[{}][{}][{}][{}]".format(
                         reception, plant, item, corridor
                     )
-                    # Yrpic[reception, plant, item, corridor] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
+                    Yrpic[reception, plant, item, corridor] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
 
     # Construct Variable P
     for s in data['suppliers']:
         for r in data['receptions']:
             for p in data['plants']:
                 for i in data['items']:
-                    for c in parameters['COR']:
-                        variable_name = "P[{}][{}][{}][{}][{}]".format(
-                            s, r, p, i, c
-                        )
-                        Psrpic[s,r,p,i, c] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
+                    variable_name = "P[{}][{}][{}][{}]".format(
+                        s, r, p, i
+                    )
+                    Psrpi[s,r,p,i] = model.addVar(lb=0, ub=None, name=variable_name, vtype="INTEGER")
 
 
     # pprint(model.getVars())
@@ -59,18 +57,15 @@ def build_model(data, parameters):
 
     # TODO: This is the real objective function. Is not complete.
     model.addCons(objective_function == (
-                  pyscipopt.quicksum((pa['Tsd'][s,r]*pa['PLra'][r,p] + pa['CDdj'][r,c]+ pa['LDsd'][s,r])*Xsrpic[s,r,p,i,c] + pa['CSsp'][s,i]*Psrpic[s,r,p,i,c]\
+                  pyscipopt.quicksum((pa['Tsd'][s,r]*pa['PLra'][r,p] + pa['CDdj'][r,c]+ pa['LDsd'][s,r])*Xsrpi[s,r,p,i] + pa['CSsp'][s,i]*Psrpi[s,r,p,i]\
                                      #for s,r,p,i,c
-
-
                                      for s in data['suppliers']\
                                      for r in data['receptions']\
                                      for p in data['plants']\
                                      for i in data['items']\
-                                     for c in parameters['COR'] if (s,r) in pa['LDsd'].keys())\
-                  + pyscipopt.quicksum((pa['Kdaj'][r,p,c] + pa['CDaj'][p,c]) * Xsrpic[s,r,p,i,c]\
+                                     for c in parameters['COR'])\
+                  + pyscipopt.quicksum((pa['Kdaj'][r,p,c] + pa['CDaj'][p,c]) * Yrpic[r,p,i,c]\
                   #                    for r,p,i,c
-                                     for s in data['suppliers']
                                      for r in data['receptions']\
                                      for p in data['plants']\
                                      for i in data['items']\
@@ -86,7 +81,7 @@ def build_model(data, parameters):
     # Restriccion de demanda
     for p in data['plants']:
         for i in data['items']:
-            model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for c in parameters['COR'])
+            model.addCons(pyscipopt.quicksum(Psrpi[s,r,p,i] for s in data['suppliers'] for r in data['receptions'])
                           == (parameters['Map'][p,i] if (p,i) in parameters['Map'].keys() else 0))
 
     # Repartir los productos en containers
@@ -94,39 +89,37 @@ def build_model(data, parameters):
         for r in data['receptions']:
             for p in data['plants']:
                 for i in data['items']:
-                    for c in parameters['COR']:
-                        model.addCons(Psrpic[s,r,p,i,c] <= Xsrpic[s,r,p,i,c] * parameters['Wp'][i])
+                    model.addCons(Psrpi[s,r,p,i] <= Xsrpi[s,r,p,i] * parameters['Wp'][i])
 
 
     # Flujo todo lo que llega a reception, debe mandarse a un assembly
-    # for r in data['receptions']:
-    #     for i in data['items']:
-    #         model.addCons(pyscipopt.quicksum(Xsrpi[s,r,p,i] for s in data['suppliers'] for p in data['plants'])\
-    #                       == pyscipopt.quicksum(Yrpic[r,p,i,c] for c in parameters['COR'] for p in data['plants']))
+    for r in data['receptions']:
+        for i in data['items']:
+            model.addCons(pyscipopt.quicksum(Xsrpi[s,r,p,i] for s in data['suppliers'] for p in data['plants'])\
+                          == pyscipopt.quicksum(Yrpic[r,p,i,c] for c in parameters['COR'] for p in data['plants']))
 
     # Flujo limite de cantidad de containers transportados desde reception r con corridor automatico
     c = "Automatic"
     for r in data['receptions']:
         for p in data['plants']:
-                model.addCons(pyscipopt.quicksum(Xsrpic[s,r,p,i,c] for i in data['items'] for s in data['suppliers']) <= parameters['RCAd'][r] )
+                model.addCons(pyscipopt.quicksum(Yrpic[r,p,i,c] for i in data['items']) <= parameters['RCAd'][r] )
 
 
     # Flujo limite de cantidad de containers transportados desde reception r con corridor manual
     c = "Manual"
     for r in data['receptions']:
         for p in data['plants']:
-                model.addCons(pyscipopt.quicksum(Xsrpic[s,r,p,i,c] for i in data['items'] for s in data['suppliers']) <= parameters['RCMd'][r])
+                model.addCons(pyscipopt.quicksum(Yrpic[r,p,i,c] for i in data['items']) <= parameters['RCMd'][r])
 
     # Peso limite de corridor automatico
-    c = "Automatic"
     for r in data['receptions']:
         for p in data['plants']:
-            model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] * parameters['Fp'][i] for s in data['suppliers'] for i in data['items'])
+            model.addCons(pyscipopt.quicksum(Psrpi[s,r,p,i] * parameters['Fp'][i] for s in data['suppliers'] for i in data['items'])
                           <= parameters['RWAd'][r])
 
     # stock de supplier
     for s in data['suppliers']:
-        model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for r in data['receptions'] for p in data['plants'] for i in data['items'] for c in parameters['COR'])
+        model.addCons(pyscipopt.quicksum(Psrpi[s,r,p,i] for r in data['receptions'] for p in data['plants'] for i in data['items'])
                       <= parameters['Ss'][s])
 
 
@@ -134,14 +127,14 @@ def build_model(data, parameters):
     c = "Manual"
     for r in data['receptions']:
         for p in data['plants']:
-                model.addCons(pyscipopt.quicksum(Xsrpic[s,r,p,i,c] for i in data['items'] for s in data['suppliers'] ) <= parameters['Eda'][(r,p)]*MM)
+                model.addCons(pyscipopt.quicksum(Yrpic[r,p,i,c] for i in data['items']) <= parameters['Eda'][(r,p)]*MM)
 
 
 
 
 def display_optimal_information():
     for var in model.getVars():
-        print("{}:\t{}".format(model.getVal(var), var))
+        print("Var:", var, model.getVal(var))
 
 
 # def print_model_info():

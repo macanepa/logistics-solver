@@ -96,7 +96,7 @@ def import_data():
                         "Please please insert valid data or change the input data directory")
 
 def create_parameters():
-    MM = 99999999
+    # MM = 0
     data = Data.INPUT_DATA
 
     if len(data.keys()) == 0:
@@ -200,7 +200,7 @@ def create_parameters():
     LDsd = {}
     for route in data['route_supplier']:
         for supplier in data['suppliers']:
-            LDsd[(supplier, reception)] = MM
+            # LDsd[(supplier, reception)] = None
             if supplier == data['route_supplier'][route]['SupplierID']:
                 reception = data['route_supplier'][route]['ReceptionID']
                 LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
