@@ -22,7 +22,7 @@ mf_display_information = mc.Menu_Function(title="Display Information", function=
 mf_display_input_data = mc.Menu_Function(title="Display Input Data", function=utilities.print_input_data)
 mf_display_parameters = mc.Menu_Function(title="Display Parameters", function=utilities.display_parameters)
 
-mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_display_input_data, mf_display_parameters, mf_about, mf_exit_application, "funciona nacheese!"], back=False)
+mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_display_input_data, mf_display_parameters, mf_about, mf_exit_application], back=False)
 
 while True:
     mc_main_menu.show()
