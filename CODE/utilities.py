@@ -101,6 +101,25 @@ def create_parameters():
 
     data = Data.INPUT_DATA
 
+    # Region of plant a
+    RAa = {}
+    for plant in data['plants']:
+        RAa[plant] = data['plants'][plant]['RegionID']
+
+    # Region of supplier s
+    RSs = {}
+    for supplier in data['suppliers']:
+        RSs[supplier] = data['suppliers'][supplier]['RegionID']
+
+    # Region of reception r (assuming region of reception = region of closest plant)
+    RRr = {}
+    for reception in data['receptions']:
+        closest_plant = data['receptions'][reception]['ClosestAssemblyPlant']
+        for plant in data['plants']:
+            if plant == closest_plant:
+                RRr[reception] = data['plants'][plant]['RegionID']
+                break
+
     # Supplier Stock
     Ss = {}
     for supplier in data['suppliers']:
@@ -114,7 +133,15 @@ def create_parameters():
     # Tax from supplier to reception
     Tsd = {}
     # for surcharge in data['surcharge']:
-
+    for supplier in RSs:
+        for reception in RRr:
+            coordinate = [RSs[supplier],RRr[reception]]
+            id_ = "_".join(['surcharge'] + coordinate)
+            pprint(data['surcharge'])
+            print(id_)
+            Tsd[tuple(coordinate)] = 0
+            if id in data['surcharge'].keys():
+                Tsd[tuple(coordinate)] = data['surcharge'][id_]
 
     # Cost of item in supplier
     CSsp = {}
@@ -122,36 +149,43 @@ def create_parameters():
         item = data['suppliers'][supplier]['ItemProduced']
         CSsp[(supplier, item)] = int(data['suppliers'][supplier]['UnitItemCost'])
 
-    # Cost of container using corridor
+    # Total cost from reception d to plant a using corridor j (including taxes)
     Kdaj = {}
 
     corridor_types =[
-    'TransportationCostPerContainerAutomatic',
-    'TransportationCostPerContainerManual',
-    'TransportationCostPerContainerSubcontractor',
+    'Automatic',
+    'Manual',
+    'Subcontractor',
     ]
 
     for corridor in data['corridor']:
         reception, plant = corridor.split("_")[1:]
         # print(data['corridor'][corridor])
         for corridor_type in corridor_types:
-            Kdaj[(reception, plant, corridor_type)] = int(data['corridor'][corridor][corridor_type])
+            corridor_real_type = corridor_type
+            corridor_type = "TransportationCostPerContainer" + corridor_type
+            total_cost = int(data['corridor'][corridor][corridor_type])
+            total_cost += float(data['corridor'][corridor]['TaxPerContainer'].replace(",",".")) if corridor_type == corridor_types[2] else 0
+            Kdaj[(reception, plant, corridor_real_type)] = total_cost
 
 
-    # Handling Cost in assembly
-    CAa = {}
-    # TODO: change model to include automatic handling
+    # Handling Cost in plant a using corridor j
+    CDaj = {}
     for plant in data['plants']:
-        CAa[plant] = int(data['plants'][plant]['PlantHandlingCostPerContainerManual'])
+        for corridor_type in corridor_types:
+            id_ = "PlantHandlingCostPerContainer" + corridor_type
+            if id_ in data['plants'][plant].keys():
+                CDaj[(plant, corridor_type)] = float(data['plants'][plant][id_].replace(",","."))
 
-    # Handling Cost in reception
-    CDd = {}
+    # Handling Cost in reception using corridor j
+    CDdj = {}
     # TODO: change model to include automatic handling
     for reception in data['receptions']:
-        CDd[reception] = data['receptions'][reception]['ReceptionHandlingCostPerContainerManual']
+        for corridor_type in corridor_types:
+            id_ = "ReceptionHandlingCostPerContainer" + corridor_type
+            if id_ in data['receptions'][reception].keys():
+                CDdj[reception] = float(data['receptions'][reception]['ReceptionHandlingCostPerContainerManual'].replace(",","."))
 
-    # TODO: What is this parameter???
-    # CCdaj = {}
 
     # Container transportation cost from supplier to reception
     LDsd = {}
@@ -160,35 +194,35 @@ def create_parameters():
         reception = data['route_supplier'][route]['ReceptionID']
         LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
 
-    # Container transportation cost from reception to plant
-    # TODO: this cost in included in corridor cost
-
-    # Weight of item
+    # Weight of item p
     Fp = {}
     for item in data['items']:
         Fp[item] = float(data['items'][item]['UnitWeight'])
 
     # Max number of items per container
-    # TODO: modify the model to comply with this change
     Wp = {}
     for item in data['items']:
         Wp[item] = int(data['items'][item]['MaximumNumPerContainer'])
 
-    # Maximum capacity of container in corridor
-    # TODO: change restriction of corridor quantity
-    # RCdj = {}
+    # Max number of container from reception d using corridor automatic
+    RCAd = {}
+    for reception in data['receptions']:
+        RCAd[reception] = data['receptions'][reception]['ReceptionMaxNumOfContainersAutomatic']
 
-    corridor_types =[
-    'TransportationCostPerContainerAutomatic',
-    'TransportationCostPerContainerManual',
-    'TransportationCostPerContainerSubcontractor',
-    ]
+    # Max weight from reception d using corridor automatic
+    RWAd = {}
+    for reception in data['receptions']:
+        RWAd[reception] = data['receptions'][reception]['ReceptionMaxSumOfWeightsAutomatic']
 
-    # for reception in data['receptions']:
-    #     for corridor_type in corridor_types:
-    #         RCdj[(reception, corridor_type)] = data['receptions'][reception][corridor_type]
+    # Max number of container from reception d using corridor manual
+    RCMd = {}
+    for reception in data['receptions']:
+        RCMd[reception] = data['receptions'][reception]['ReceptionMaxNumOfContainersManual']
 
-
+    # Max number of items from reception d using corridor manual
+    RIMd = {}
+    for reception in data['receptions']:
+        RIMd[reception] = data['receptions'][reception]['ReceptionMaxNumOfItemsManual']
 
     # Binary, can you send from reception d to plant a? (this is for corridor type 2)
     Eda = {}
@@ -199,28 +233,25 @@ def create_parameters():
         plant = data['receptions'][reception]['ClosestAssemblyPlant'].replace("Assembly", "")
         Eda[(reception, plant)] = 1
 
-    # TODO: Maximium number of products using corridor type 2 from reception d to plant a
-    # Nda = {}
-
     Data.PARAMETERS = {
+        'RAa': RAa,  # Region of plant a
+        'RRr': RRr,  # Region of reception r
+        'RSs': RSs,  # Region of supplier s
         'Ss': Ss,
         'Map': Map,
-        # 'Tsd': Tsa,
-        # 'Tda': Tda,
+        'Tsd': Tsd,  # TODO: temporary 0, but should be present inside .csv Total cost from supplier to reception
         'CSsp': CSsp,
-        'Kdaj': Kdaj,
-        'CAa': CAa,
-        # 'CDa': CDa,
-        'CDd': CDd,
-        # 'CCdaj': CCdaj,
+        'Kdaj': Kdaj,  # TODO: include tax # Done
+        'CDaj': CDaj, # TODO: done
+        'CDdj': CDdj,  # TODO: done
         'LDsd': LDsd,
-        # 'LAda': LAda,
         'Fp': Fp,
         'Wp': Wp,
-        # 'RCdaj': RCdaj,
-        # 'RPdaj': RPdaj,
+        'RCAd': RCAd, # TODO: done
+        'RWAd': RWAd, # TODO: done
+        'RCMd': RCMd, # TODO: done
+        'RIMd': RIMd, # TODO: done
         'Eda': Eda,
-        # 'Nda': Nda,
     }
 
 def select_input_data_folder():
