@@ -2,11 +2,12 @@ import pyscipopt
 from pprint import pprint
 from mcutils import menu_manager as mc
 
-global model
-model = pyscipopt.Model("Model_Team_8")
+class Model:
+    model = None
 
 def build_model(data, parameters):
-
+    Model.model = pyscipopt.Model("Model_Team_8")
+    model = Model.model
     # Aux
     MM = 9999999
 
@@ -136,13 +137,14 @@ def build_model(data, parameters):
         for p in data['plants']:
                 model.addCons(pyscipopt.quicksum(Xsrpic[s,r,p,i,c] for i in data['items'] for s in data['suppliers'] ) <= parameters['Eda'][(r,p)]*MM)
 
-
-
-
 def display_optimal_information():
+    model = Model.model
     for var in model.getVars():
         print("{}:\t{}".format(model.getVal(var), var))
 
+def reset_model():
+    del Model.model
+    Model.model = None
 
 # def print_model_info():
 # model = pyscipopt.Model("Model_Team_8")

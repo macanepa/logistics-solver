@@ -271,9 +271,12 @@ def create_parameters():
 
 def select_input_data_folder():
     list_dir = os.listdir(os.getcwd())
+    excluded_dirs = ['output',
+                     '__pycache__',
+                     'mcutils']
     menu_list = []
     for directory in list_dir:
-        if not os.path.isfile(directory):
+        if not os.path.isfile(directory) and directory not in excluded_dirs:
             menu_list.append(directory)
 
     mc_import_data = mc.Menu(title="Import Input Data", subtitle="Select the directory to import",
@@ -284,6 +287,11 @@ def select_input_data_folder():
     mc.mcprint(ConfigFiles.DIRECTORIES["input_data"], color=mc.Color.GREEN)
     return selected_folder
 
+def clear_all_data():
+    mc.mcprint(text="Removing all data!!!", color=mc.Color.ORANGE)
+    Data.INPUT_DATA = {}
+    Data.PARAMETERS = {}
+    model.reset_model()
 def import_input_data(select_new_folder=False):
     try:
         select_input_data_folder() if select_new_folder else None
@@ -298,36 +306,36 @@ def import_input_data(select_new_folder=False):
         mc.mcprint(text="Model has been constructed successfully", color=mc.Color.GREEN)
         mc.mcprint(text="\nThe instance is ready to be optimized", color=mc.Color.GREEN)
         # print_input_data()
+        # clear_all_data()
     except Exception as e:
+        clear_all_data()
         mc.register_error(error_string="The input directory doesn't contain a valid structure")
         mc.register_error(error_string=e)
         return
     # TODO: Import the data to the dictionary at Class Data
 
 def optimize():
-    Data.INPUT_DATA["Remove Me"] = False
-    # Only if data has been loaded properly
-    if Data.INPUT_DATA.keys():
+    # Only if model has been created properly
+    if model.Model.model:
         # mc.mcprint(text="There is data",
         #            color=mc.Color.GREEN)
         print(mc.Color.GREEN)
         cwd = os.getcwd()
         os.chdir(ConfigFiles.DIRECTORIES["output"])  # Change dir to write the problem in output folder
-        model.model.writeProblem()
+        model.Model.model.writeProblem()
         print(mc.Color.PURPLE)
-        model.model.optimize()
+        model.Model.model.optimize()
         model.display_optimal_information()
         os.chdir(cwd)  # Head back to original working directory
         print(mc.Color.RESET)
     else:
-        mc.mcprint(text="There is no data",
-                   color=mc.Color.RED)
+        mc.register_error(error_string="The model hasn't been created properly")
 
 def display_information():
     text = "Displaying Information\n" \
            "\t- Input Data Directory: {}\n" \
            "\t- Objective Function: {}\n" \
-           "\t- Other Stuff...".format(ConfigFiles.DIRECTORIES["input_data"], model.model.getObjective())
+           "\t- Other Stuff...".format(ConfigFiles.DIRECTORIES["input_data"], model.Model.model.getObjective())
 
     mc.mcprint(text=text,
                color=mc.Color.PURPLE)
