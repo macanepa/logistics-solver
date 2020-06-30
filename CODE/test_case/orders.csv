@@ -1,0 +1,3 @@
+OrderID;PlantID;ItemID;NumItemsOrdered
+Order001;Plant001;Item001;120
+Order002;Plant002;Item001;150

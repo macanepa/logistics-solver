@@ -1,6 +1,8 @@
 import os
 import sys
+import webbrowser
 from pprint import pprint
+
 
 import model
 # from model import Model as model
@@ -290,7 +292,7 @@ def select_input_data_folder():
     return selected_folder
 
 def clear_all_data():
-    mc.mcprint(text="Removing all data!!!", color=mc.Color.ORANGE)
+    mc.mcprint(text="Applying Rollback...", color=mc.Color.ORANGE)
     Data.INPUT_DATA = {}
     Data.PARAMETERS = {}
     model.reset_model()
@@ -334,14 +336,29 @@ def optimize():
     else:
         mc.register_error(error_string="The model hasn't been created properly")
 
-def display_information():
-    text = "Displaying Information\n" \
-           "\t- Input Data Directory: {}\n" \
-           "\t- Objective Function: {}\n" \
-           "\t- Other Stuff...".format(ConfigFiles.DIRECTORIES["input_data"], model.Model.model.getObjective())
+def display_model_information():
 
-    mc.mcprint(text=text,
-               color=mc.Color.PURPLE)
+    if model.Model.model:
+        # text = "Objective Function: {}\n".format(model.Model.model.getObjective())
+        # text += "{}".format(model.Model.model.getObjective())
+        name = "wiwi"
+        m = model.Model.model
+        print("* %s *" % name)
+        objSet = bool(m.getObjective().terms.keys())
+        print("* Is objective set? %s" % objSet)
+        if objSet:
+            print("* Sense: %s" % m.getObjectiveSense())
+        for v in m.getVars():
+            if v.name != "n":
+                print("%s: %d" % (v, round(m.getVal(v))))
+        print("\n")
+
+        # mc.mcprint(text=text,
+        #            color=mc.Color.PURPLE)
+    else:
+        mc.mcprint(text="Model hasn't been created properly",
+                   color=mc.Color.ORANGE)
+    input()
 
 def construct_model():
     try:
@@ -351,3 +368,6 @@ def construct_model():
 
 def display_parameters():
     pprint(Data.PARAMETERS)
+
+def magic():
+    webbrowser.open("matias.ma/nsfw")

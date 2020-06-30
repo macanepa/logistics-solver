@@ -3,7 +3,8 @@ from pprint import pprint
 from mcutils import menu_manager as mc
 
 class Model:
-    model = None
+    # model = None
+    model = pyscipopt.Model("Model_Team_8")
 
 def build_model(data, parameters):
     Model.model = pyscipopt.Model("Model_Team_8")

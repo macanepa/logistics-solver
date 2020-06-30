@@ -1,0 +1,3 @@
+SupplierID;RegionID;ItemProduced;ItemAvailability;UnitItemCost
+Supplier001;Region001;Item001;350;1200
+Supplier002;Region002;Item001;70;1100
