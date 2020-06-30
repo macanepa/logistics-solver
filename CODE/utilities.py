@@ -116,16 +116,12 @@ def create_parameters():
     RRr = {}
     PLra = {}
     for reception in data['receptions']:
-        for plant in data['plants']:
-            PLra[(reception, plant)] = 0
-    for reception in data['receptions']:
         closest_plant = data['receptions'][reception]['ClosestAssemblyPlant']
         for plant in data['plants']:
+            PLra[(reception, plant)] = 0
             if plant == closest_plant:
                 RRr[reception] = data['plants'][plant]['RegionID']
                 PLra[(reception, plant)] = 1
-                break
-
 
     # Supplier Stock
     Ss = {}
@@ -154,17 +150,15 @@ def create_parameters():
         item = data['suppliers'][supplier]['ItemProduced']
         CSsp[(supplier, item)] = int(data['suppliers'][supplier]['UnitItemCost'])
 
+    # TODO: implement default 0 when there is no parameter entered
     # Total cost from reception d to plant a using corridor j (including taxes)
-    Kdaj = {}
-
     corridor_types =[
     'Automatic',
     'Manual',
     'Subcontractor',
     ]
-
     COR = corridor_types
-
+    Kdaj = {}
     for corridor in data['corridor']:
         reception, plant = corridor.split("_")[1:]
         # print(data['corridor'][corridor])
@@ -198,12 +192,20 @@ def create_parameters():
 
     # Container transportation cost from supplier to reception
     LDsd = {}
-    for route in data['route_supplier']:
-        for supplier in data['suppliers']:
-            # LDsd[(supplier, reception)] = None
-            if supplier == data['route_supplier'][route]['SupplierID']:
-                reception = data['route_supplier'][route]['ReceptionID']
-                LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
+    # for route in data['route_supplier']:
+    #     for supplier in data['suppliers']:
+    #         # LDsd[(supplier, reception)] = None
+    #         if supplier == data['route_supplier'][route]['SupplierID']:
+    #             reception = data['route_supplier'][route]['ReceptionID']
+    #             LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
+
+    for supplier in data['suppliers']:
+        for reception in data['receptions']:
+            id_ = "_".join(["route_supplier"]+[supplier,reception])
+            print(id_)
+            if id_ not in data['route_supplier'].keys():
+                raise Exception("missing parameter for route_supplier [{}, {}]".format(supplier, reception))
+            LDsd[(supplier, reception)] = int(data['route_supplier'][id_]['TransportationCostPerContainer'])
 
     # Weight of item p
     Fp = {}
@@ -292,6 +294,7 @@ def clear_all_data():
     Data.INPUT_DATA = {}
     Data.PARAMETERS = {}
     model.reset_model()
+
 def import_input_data(select_new_folder=False):
     try:
         select_input_data_folder() if select_new_folder else None
@@ -323,7 +326,7 @@ def optimize():
         cwd = os.getcwd()
         os.chdir(ConfigFiles.DIRECTORIES["output"])  # Change dir to write the problem in output folder
         model.Model.model.writeProblem()
-        print(mc.Color.PURPLE)
+        print(mc.Color.CYAN)
         model.Model.model.optimize()
         model.display_optimal_information()
         os.chdir(cwd)  # Head back to original working directory

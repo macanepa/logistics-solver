@@ -125,6 +125,13 @@ def build_model(data, parameters):
             model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] * parameters['Fp'][i] for s in data['suppliers'] for i in data['items'])
                           <= parameters['RWAd'][r])
 
+    # Cantidad de Items limite de corridor manual
+    c = "Manual"
+    for  r in data['receptions']:
+        model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for p in data['plants'] for i in data['items'])
+                      <= parameters['RIMd'][r])
+
+
     # stock de supplier
     for s in data['suppliers']:
         model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for r in data['receptions'] for p in data['plants'] for i in data['items'] for c in parameters['COR'])
@@ -137,10 +144,13 @@ def build_model(data, parameters):
         for p in data['plants']:
                 model.addCons(pyscipopt.quicksum(Xsrpic[s,r,p,i,c] for i in data['items'] for s in data['suppliers'] ) <= parameters['Eda'][(r,p)]*MM)
 
+
+
 def display_optimal_information():
     model = Model.model
     for var in model.getVars():
-        print("{}:\t{}".format(model.getVal(var), var))
+        value = model.getVal(var)
+        print("{}:\t{}".format(value, var)) if value != 0 else None
 
 def reset_model():
     del Model.model
@@ -148,7 +158,7 @@ def reset_model():
 
 # def print_model_info():
 # model = pyscipopt.Model("Model_Team_8")
-# x = model.addVar("x")
+# x = model.addVar("x")model.getVal(var)
 # y = model.addVar("y", vtype="INTEGER")
 # model.setObjective(x + y)
 # model.addCons(2 * x - y * y >= 0)
