@@ -335,30 +335,6 @@ def optimize():
     else:
         mc.register_error(error_string="The model hasn't been created properly")
 
-def display_model_information():
-
-    if model.Model.model:
-        # text = "Objective Function: {}\n".format(model.Model.model.getObjective())
-        # text += "{}".format(model.Model.model.getObjective())
-        name = "wiwi"
-        m = model.Model.model
-        print("* %s *" % name)
-        objSet = bool(m.getObjective().terms.keys())
-        print("* Is objective set? %s" % objSet)
-        if objSet:
-            print("* Sense: %s" % m.getObjectiveSense())
-        for v in m.getVars():
-            if v.name != "n":
-                print("%s: %d" % (v, round(m.getVal(v))))
-        print("\n")
-
-        # mc.mcprint(text=text,
-        #            color=mc.Color.PURPLE)
-    else:
-        mc.mcprint(text="Model hasn't been created properly",
-                   color=mc.Color.ORANGE)
-    input()
-
 def construct_model():
     try:
         model.build_model(data=Data.INPUT_DATA, parameters=Data.PARAMETERS)
@@ -367,6 +343,3 @@ def construct_model():
 
 def display_parameters():
     pprint(Data.PARAMETERS)
-
-def magic():
-    webbrowser.open("matias.ma/nsfw")
