@@ -150,7 +150,7 @@ def display_optimal_information():
     model = Model.model
     for var in model.getVars():
         value = int(model.getVal(var))
-        print("{}:\t{}".format(var, value)) if value != 0 else None
+        print("{}:\t{}".format(value, var)) if value != 0 else None
 
 def reset_model():
     del Model.model
