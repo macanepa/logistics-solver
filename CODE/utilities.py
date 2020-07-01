@@ -1,6 +1,5 @@
 import os
 import sys
-import webbrowser
 from pprint import pprint
 
 

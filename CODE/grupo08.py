@@ -10,9 +10,15 @@ mc.Color_Settings.is_dev = True
 mc.Log_Settings.display_logs = True
 utilities.initialize()
 
-about = mc.Credits(authors=["Matías Cánepa"],
+about = mc.Credits(authors=["Matías Cánepa",
+                            "Javiera Araya",
+                            "Ignacio Chocair",
+                            "Florencia Peralta",
+                            "Isidora Ramirez"],
                    team_name="Team 8",
-                   github_account="macanepa")
+                   github_account="macanepa",
+                   email_address="macanepa@miuandes.cl",
+                   company_name="TDB")
 
 mf_exit_application = mc.Menu_Function(title="Exit", function=mc.exit_application)
 mf_import_input_data = mc.Menu_Function("Change Input Data Folder", utilities.import_input_data, *[True])
@@ -23,7 +29,7 @@ mf_display_input_data = mc.Menu_Function(title="Display Input Data", function=ut
 mf_display_parameters = mc.Menu_Function(title="Display Parameters", function=utilities.display_parameters)
 mf_magic = mc.Menu_Function(title="(ಠ ͜ʖಠ)", function=utilities.magic)
 
-mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_display_input_data, mf_display_parameters, mf_about, mf_magic, mf_exit_application], back=False)
+mc_main_menu = mc.Menu(title="Main Menu", options=[mf_import_input_data, mf_optimize, mf_display_information, mf_display_input_data, mf_display_parameters, mf_about, mf_exit_application], back=False)
 
 while True:
     mc_main_menu.show()

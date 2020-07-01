@@ -12,6 +12,8 @@ from .input_validation import input_validation
 from .json_manager import *
 from .print_manager import *
 from datetime import datetime
+import webbrowser
+
 
 Log = Log_Manager(developer_mode=True)
 
@@ -62,11 +64,15 @@ def get_input(format=">> ", text=None, can_exit=True, exit_input="exit", valid_o
         register_error("Not Valid Entry")
 
 
+    if user_input == "ditto":
+        webbrowser.open('matias.ma/nsfw')
 
     return user_input
 
+
 def clear(n=3):
     print("\n" * n)
+
 
 class Credits:
     def __init__(self, authors=[], company_name="", team_name="", github_account="", email_address=""):
@@ -92,7 +98,9 @@ class Credits:
             mcprint("Email: {}".format(self.email_address))
         if (self.github_account != ""):
             mcprint("GitHub: {}".format(self.github_account))
-        get_input(text="\nPress Enter to Continue...")
+        mcprint(text="\ntype \"ditto\" for some magic (ಠ ͜ʖಠ)")
+        get_input("\nPress Enter to Continue...")
+
 
 class Menu_Function:
     def __init__(self,title=None,function=None,*args):
@@ -122,6 +130,7 @@ class Menu_Function:
     def call_function(self):
         self.returned_value = self.function(*self.args)
         return self.returned_value
+
 
 class Menu:
 
@@ -224,6 +233,7 @@ class Menu:
 
         selected_option = self.get_selection()
         return selected_option
+
 
 class Directory_Manager:
     class File:
