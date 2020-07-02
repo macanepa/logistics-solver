@@ -174,10 +174,6 @@ def build_model(data, parameters):
 
     # TODO: automatic solo acepta ciertos items (este valor se encuentra en items)
 
-    for x in Xsrpic:
-        print(x)
-    for x in Psrpic:
-        print(x)
 def display_optimal_information():
     model = Model.model
     if model.getStatus() == "optimal":
