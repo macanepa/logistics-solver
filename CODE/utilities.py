@@ -148,7 +148,6 @@ def create_parameters():
         for reception in RRr:
             coordinate = [RSs[supplier],RRr[reception]]
             id_ = "_".join(['surcharge'] + coordinate)
-            mc.mcprint(text=id_, color=mc.Color.PINK)
             if id_ in data['surcharge'].keys():
                 Tsd[(supplier, reception)] = float(data['surcharge'][id_]['TaxPerContainer'].replace(",","."))
             else:
@@ -210,18 +209,13 @@ def create_parameters():
     mc.mcprint(text="Generating Transportation Cost from Supplier -> Reception")
     # Container transportation cost from supplier to reception
     LDsd = {}
-    # for route in data['route_supplier']:
-    #     for supplier in data['suppliers']:
-    #         # LDsd[(supplier, reception)] = None
-    #         if supplier == data['route_supplier'][route]['SupplierID']:
-    #             reception = data['route_supplier'][route]['ReceptionID']
-    #             LDsd[(supplier, reception)] = int(data['route_supplier'][route]['TransportationCostPerContainer'])
-
     for supplier in data['suppliers']:
         for reception in data['receptions']:
             id_ = "_".join(["route_supplier"]+[supplier,reception])
             if id_ not in data['route_supplier'].keys():
-                raise Exception("missing parameter for route_supplier [{}, {}]".format(supplier, reception))
+                # raise Exception("missing parameter for route_supplier [{}, {}]".format(supplier, reception))
+                # LDsd[(supplier, reception)] = None
+                continue
             LDsd[(supplier, reception)] = int(data['route_supplier'][id_]['TransportationCostPerContainer'])
 
     mc.mcprint(text="Generating Weight for Item")
