@@ -148,9 +148,11 @@ def create_parameters():
         for reception in RRr:
             coordinate = [RSs[supplier],RRr[reception]]
             id_ = "_".join(['surcharge'] + coordinate)
-            Tsd[supplier, reception] = 0
-            if id in data['surcharge'].keys():
-                Tsd[supplier, reception] = data['surcharge'][id_]
+            mc.mcprint(text=id_, color=mc.Color.PINK)
+            if id_ in data['surcharge'].keys():
+                Tsd[(supplier, reception)] = float(data['surcharge'][id_]['TaxPerContainer'].replace(",","."))
+            else:
+                Tsd[(supplier, reception)] = 0
 
     mc.mcprint(text="Generating Cost of Item (in supplier)")
     # Cost of item in supplier
@@ -269,7 +271,12 @@ def create_parameters():
         plant = data['receptions'][reception]['ClosestAssemblyPlant'].replace("Assembly", "")
         Eda[(reception, plant)] = 1
 
-
+    mc.mcprint(text="Generating Binary can Item use Corridor automatic?")
+    # Check if item can go in automatic corridor
+    Ii = {}
+    for item in data['items']:
+        is_automatic_compatible = int(data['items'][item]['IsAutomaticCompatible'])
+        Ii[item] = 1 if is_automatic_compatible > 0 else 0
 
     Data.PARAMETERS = {
         'RAa': RAa,  # Region of plant a
@@ -292,6 +299,7 @@ def create_parameters():
         'RIMd': RIMd, # TODO: done
         'Eda': Eda,
         'COR': COR, # the three different corridor types
+        'Ii': Ii,
     }
 
 def select_input_data_folder():

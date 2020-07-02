@@ -145,6 +145,13 @@ def build_model(data, parameters):
         model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for p in data['plants'] for i in data['items'])
                       <= parameters['RIMd'][r])
 
+    mc.mcprint(text="Cons: Check if Item can go through corridor (automatic)")
+    c = "Automatic"
+    for s in data['suppliers']:
+        for r in data['receptions']:
+            for p in data['plants']:
+                for i in data['items']:
+                    model.addCons(Xsrpic[s,r,p,i,c] <= MM*pa['Ii'][i])
 
     mc.mcprint(text="Cons: Supplier Stock")
     # stock de supplier
