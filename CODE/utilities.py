@@ -72,6 +72,8 @@ def import_data():
             first_line = True
             headers = []
             for line in file:
+                if line.strip() == "":
+                    continue
                 if first_line:
                     if file_name in exclude:
                         headers = line.strip().split(";")
@@ -79,7 +81,6 @@ def import_data():
                         headers = line.strip().split(";")[1:]
                     first_line = False
                     continue
-
                 if file_name not in exclude:
                     split = line.strip().split(";")
                     object_data[split[0]] = {}
@@ -104,15 +105,18 @@ def create_parameters():
         raise Exception("There is no data")
 
     # Region of plant a
+    mc.mcprint(text="Generating Plants")
     RAa = {}
     for plant in data['plants']:
         RAa[plant] = data['plants'][plant]['RegionID']
 
+    mc.mcprint(text="Generating Suppliers")
     # Region of supplier s
     RSs = {}
     for supplier in data['suppliers']:
         RSs[supplier] = data['suppliers'][supplier]['RegionID']
 
+    mc.mcprint(text="Generating Region of Reception")
     # Region of reception r (assuming region of reception = region of closest plant)
     RRr = {}
     PLra = {}
@@ -124,16 +128,19 @@ def create_parameters():
                 RRr[reception] = data['plants'][plant]['RegionID']
                 PLra[(reception, plant)] = 1
 
+    mc.mcprint(text="Generating Supplier Stock")
     # Supplier Stock
     Ss = {}
     for supplier in data['suppliers']:
         Ss[supplier] = int(data['suppliers'][supplier]['ItemAvailability'])
 
+    mc.mcprint(text="Generating Demand")
     # Assembly pant demand
     Map = {}
     for order in data['orders'].values():
         Map[(order['PlantID'], order['ItemID'])] = int(order['NumItemsOrdered'])
 
+    mc.mcprint(text="Generating Tax Supplier -> Reception")
     # Tax from supplier to reception
     Tsd = {}
     # for surcharge in data['surcharge']:
@@ -145,12 +152,14 @@ def create_parameters():
             if id in data['surcharge'].keys():
                 Tsd[supplier, reception] = data['surcharge'][id_]
 
+    mc.mcprint(text="Generating Cost of Item (in supplier)")
     # Cost of item in supplier
     CSsp = {}
     for supplier in data['suppliers']:
         item = data['suppliers'][supplier]['ItemProduced']
         CSsp[(supplier, item)] = int(data['suppliers'][supplier]['UnitItemCost'])
 
+    mc.mcprint(text="Generating Cost from Reception -> Supplier (includes taxes)")
     # TODO: implement default 0 when there is no parameter entered
     # Total cost from reception d to plant a using corridor j (including taxes)
     corridor_types =[
@@ -161,16 +170,20 @@ def create_parameters():
     COR = corridor_types
     Kdaj = {}
     for corridor in data['corridor']:
+        # mc.mcprint(text=corridor, color=mc.Color.PINK)
+        if not len(corridor.split("_")) > 1:
+            continue
         reception, plant = corridor.split("_")[1:]
-        # print(data['corridor'][corridor])
         for corridor_type in corridor_types:
             corridor_real_type = corridor_type
             corridor_type = "TransportationCostPerContainer" + corridor_type
             total_cost = int(data['corridor'][corridor][corridor_type])
-            total_cost += float(data['corridor'][corridor]['TaxPerContainer'].replace(",",".")) if corridor_type == corridor_types[2] else 0
+            if corridor_type == corridor_types[2]:
+                total_cost += float(data['corridor'][corridor]['TaxPerContainer'].replace(",","."))
             Kdaj[(reception, plant, corridor_real_type)] = total_cost
 
 
+    mc.mcprint(text="Generating Handling Cost at Plant")
     # Handling Cost in plant a using corridor j
     CDaj = {}
     for plant in data['plants']:
@@ -180,6 +193,7 @@ def create_parameters():
             if id_ in data['plants'][plant].keys():
                 CDaj[(plant, corridor_type)] = float(data['plants'][plant][id_].replace(",","."))
 
+    mc.mcprint(text="Generating Handling Cost at Reception")
     # Handling Cost in reception using corridor j
     CDdj = {}
     # TODO: change model to include automatic handling
@@ -191,6 +205,7 @@ def create_parameters():
                 CDdj[(reception, corridor_type)] = float(data['receptions'][reception][id_].replace(",","."))
 
 
+    mc.mcprint(text="Generating Transportation Cost from Supplier -> Reception")
     # Container transportation cost from supplier to reception
     LDsd = {}
     # for route in data['route_supplier']:
@@ -203,41 +218,48 @@ def create_parameters():
     for supplier in data['suppliers']:
         for reception in data['receptions']:
             id_ = "_".join(["route_supplier"]+[supplier,reception])
-            print(id_)
             if id_ not in data['route_supplier'].keys():
                 raise Exception("missing parameter for route_supplier [{}, {}]".format(supplier, reception))
             LDsd[(supplier, reception)] = int(data['route_supplier'][id_]['TransportationCostPerContainer'])
 
+    mc.mcprint(text="Generating Weight for Item")
     # Weight of item p
     Fp = {}
     for item in data['items']:
         Fp[item] = float(data['items'][item]['UnitWeight'])
 
+    mc.mcprint(text="Generating Max Number of Items per Container")
     # Max number of items per container
     Wp = {}
     for item in data['items']:
         Wp[item] = int(data['items'][item]['MaximumNumPerContainer'])
 
+    mc.mcprint(text="Generating Max Number of Container from reception -> Pant (using automatic corridor)")
     # Max number of container from reception d using corridor automatic
     RCAd = {}
     for reception in data['receptions']:
         RCAd[reception] = int(data['receptions'][reception]['ReceptionMaxNumOfContainersAutomatic'])
 
+
+    mc.mcprint(text="Generating Max Weight from Reception -> Plant (using corridor automatic)")
     # Max weight from reception d using corridor automatic
     RWAd = {}
     for reception in data['receptions']:
         RWAd[reception] = float(data['receptions'][reception]['ReceptionMaxSumOfWeightsAutomatic'].replace(",","."))
 
+    mc.mcprint(text="Generating Max Number of Container from Reception -> Plant (using corridor manual)")
     # Max number of container from reception d using corridor manual
     RCMd = {}
     for reception in data['receptions']:
         RCMd[reception] = int(data['receptions'][reception]['ReceptionMaxNumOfContainersManual'])
 
+    mc.mcprint(text="Generating Max Number of Items from Reception -> Plant (using corridor manual)")
     # Max number of items from reception d using corridor manual
     RIMd = {}
     for reception in data['receptions']:
         RIMd[reception] = int(data['receptions'][reception]['ReceptionMaxNumOfItemsManual'])
 
+    mc.mcprint(text="Generating Binary can send from Reception -> Plant (using corridor ?)")
     # Binary, can you send from reception d to plant a? (this is for corridor type 2)
     Eda = {}
     for reception in data['receptions']:
@@ -307,10 +329,6 @@ def import_input_data(select_new_folder=False):
         mc.mcprint(text="Parameters has been generated successfully", color=mc.Color.GREEN)
         mc.mcprint(text="Constructing Model", color=mc.Color.ORANGE)
         construct_model()
-        mc.mcprint(text="Model has been constructed successfully", color=mc.Color.GREEN)
-        mc.mcprint(text="\nThe instance is ready to be optimized", color=mc.Color.GREEN)
-        # print_input_data()
-        # clear_all_data()
     except Exception as e:
         clear_all_data()
         mc.register_error(error_string="The input directory doesn't contain a valid structure")
@@ -338,7 +356,10 @@ def optimize():
 def construct_model():
     try:
         model.build_model(data=Data.INPUT_DATA, parameters=Data.PARAMETERS)
+        mc.mcprint(text="Model has been constructed successfully", color=mc.Color.GREEN)
+        mc.mcprint(text="\nThe instance is ready to be optimized", color=mc.Color.GREEN)
     except Exception as e:
+        mc.register_error(error_string="There was an error generating the model")
         mc.register_error(error_string=e)
 
 def display_parameters():
