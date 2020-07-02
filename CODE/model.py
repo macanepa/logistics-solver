@@ -98,8 +98,8 @@ def build_model(data, parameters):
                 model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for c in parameters['COR'] if (s,r,p,i,c) in Psrpic.keys())
                               == (parameters['Map'][p,i]))
             else:
-                model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for c in parameters['COR'])
-                              == 0)
+                model.addCons(pyscipopt.quicksum(Psrpic[s,r,p,i,c] for s in data['suppliers'] for r in data['receptions'] for c in parameters['COR'] if (s,r,p,i,c) in Psrpic.keys())
+                              == 1)
 
     mc.mcprint(text="Cons: Distribute P in X")
     # Repartir los productos en containers

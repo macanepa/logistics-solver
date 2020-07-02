@@ -137,8 +137,14 @@ def create_parameters():
     mc.mcprint(text="Generating Demand")
     # Assembly pant demand
     Map = {}
-    for order in data['orders'].values():
-        Map[(order['PlantID'], order['ItemID'])] = int(order['NumItemsOrdered'])
+    for order_id in data['orders']:
+        order = data['orders'][order_id]
+        item_id = order['ItemID']
+        if item_id in data['items'].keys():
+            Map[(order['PlantID'], item_id)] = int(order['NumItemsOrdered'])
+        else:
+            error_message = "{} includes {} but this item has not been declared in the input file".format(order_id, item_id)
+            raise Exception(error_message)
 
     mc.mcprint(text="Generating Tax Supplier -> Reception")
     # Tax from supplier to reception
