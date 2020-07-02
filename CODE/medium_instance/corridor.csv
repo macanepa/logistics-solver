@@ -1,0 +1,12 @@
+CorridorOrigin;CorridorDestination;TransportationCostPerContainerAutomatic;TransportationCostPerContainerManual;TransportationCostPerContainerSubcontractor;HasHighway;TaxPerContainer
+Reception001;Plant001;500;20;8900;0;100
+Reception002;Plant001;100;100;8700;0;85
+Reception003;Plant001;85;96;8750;0;85
+
+Reception001;Plant002;450;35;9500;0;90
+Reception002;Plant002;320;40;8670;0;94
+Reception003;Plant002;560;45;7000;0;87
+
+Reception001;Plant003;330;150;7600;0;100
+Reception002;Plant003;420;160;7650;0;85
+Reception003;Plant003;467;135;5900;0;90

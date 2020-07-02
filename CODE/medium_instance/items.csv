@@ -1,0 +1,3 @@
+ItemID;IsAutomaticCompatible;UnitWeight;MaximumNumPerContainer
+Item001;1;0.2;8
+Item002;1;0.3;3

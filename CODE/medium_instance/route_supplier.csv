@@ -1,0 +1,13 @@
+SupplierID;ReceptionID;TransportationCostPerContainer
+Supplier001;Reception001;35
+Supplier002;Reception001;45
+Supplier003;Reception001;56
+
+
+Supplier001;Reception002;10
+Supplier002;Reception002;100
+Supplier003;Reception002;35
+
+Supplier001;Reception003;15
+Supplier002;Reception003;68
+Supplier003;Reception003;60
