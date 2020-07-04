@@ -1,10 +1,13 @@
 import datetime
+
 from .print_manager import *
 
-class Log_Settings:
+
+class LogSettings:
     display_logs = False
 
-class Log_Manager:
+
+class LogManager:
     class Log:
         def __init__(self, text, is_error=False):
             self.time_stamp = datetime.datetime.now()
@@ -12,8 +15,8 @@ class Log_Manager:
             self.is_error = is_error
 
         def print_log(self):
-            if Log_Settings.display_logs:
-                text = ("{} => <{}>".format(self.time_stamp,self.text))
+            if LogSettings.display_logs:
+                text = ("{} => <{}>".format(self.time_stamp, self.text))
                 if self.is_error:
                     mcprint(text=text, color=Color.RED)
                 else:
@@ -27,7 +30,7 @@ class Log_Manager:
         log = self.Log(text, is_error)
         self.logs.append(log)
 
-        if(self.developer_mode):
+        if self.developer_mode:
             log.print_log()
 
     def print_logs(self):

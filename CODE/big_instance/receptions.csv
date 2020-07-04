@@ -1,0 +1,8 @@
+ReceptionID;ClosestAssemblyPlant;ReceptionMaxNumOfContainersAutomatic;ReceptionMaxSumOfWeightsAutomatic;ReceptionMaxNumOfContainersManual;ReceptionMaxNumOfItemsManual;ReceptionHandlingCostPerContainerAutomatic;ReceptionHandlingCostPerContainerManual
+Reception001;Plant001;10;960,1;6;30;140;500
+Reception002;Plant002;4;160,2;8;90;120;450
+Reception003;Plant003;6;150,3;6;75;100;365
+Reception004;Plant004;8;135,2;5;56;125;450
+Reception005;Plant005;9;145,4;9;86;125;345
+Reception006;Plant006;6;165,8;7;71;120;300
+Reception007;Plant007;8;132,6;6;67;134;560

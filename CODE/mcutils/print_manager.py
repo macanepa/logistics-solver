@@ -1,6 +1,7 @@
-class Color_Settings:
-    is_dev=False
-    print_color=True
+class ColorSettings:
+    is_dev = False
+    print_color = True
+
 
 class Color:
     BLACK = '\033[30m'
@@ -20,11 +21,12 @@ class Color:
     LIGHTCYAN = '\033[96m'
     RESET = '\033[0m'
 
-def mcprint(text="", format="", color=None):
-    # if not Color_Settings.is_dev:
-        #colorama.init(convert=True)
 
-    text = "{}{}".format(format, text)
-    if color and Color_Settings.print_color==True:
+def mcprint(text="", format_="", color=None):
+    # if not ColorSettings.is_dev:
+    # colorama.init(convert=True)
+
+    text = "{}{}".format(format_, text)
+    if color and ColorSettings.print_color:
         text = "{}{}{}".format(color, text, Color.RESET)
     print(text)
