@@ -1,9 +1,0 @@
-OrderID;PlantID;ItemID;NumItemsOrdered
-Order001;Plant001;Item001;120
-Order002;Plant002;Item001;150
-Order003;Plant003;Item002;130
-Order004;Plant003;Item005;110
-Order005;Plant004;Item003;90
-Order006;Plant005;Item004;135
-Order007;Plant006;Item004;145
-Order008;Plant007;Item003;100

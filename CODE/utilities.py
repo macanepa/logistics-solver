@@ -158,7 +158,6 @@ def create_parameters():
         for reception in rr_r:
             coordinate = [rr_r[reception], rs_s[supplier]]
             id_ = "_".join(['surcharge'] + coordinate)
-            mc.mcprint(text=id_, color=mc.Color.RED)
             if id_ in data['surcharge'].keys():
                 t_sd[(supplier, reception)] = float(data['surcharge'][id_]['TaxPerContainer'].replace(",", "."))
             else:

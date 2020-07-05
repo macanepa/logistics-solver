@@ -1,8 +1,0 @@
-SupplierID;RegionID;ItemProduced;ItemAvailability;UnitItemCost
-Supplier001;Region001;Item001;350;1200
-Supplier002;Region002;Item001;70;1100
-Supplier003;Region002;Item002;155;860
-Supplier004;Region003;Item005;126;800
-Supplier005;Region003;Item004;134;900
-Supplier006;Region004;Item003;150;1200
-Supplier007;Region004;Item004;100;950
